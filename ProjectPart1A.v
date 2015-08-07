@@ -42,14 +42,34 @@ wire rawValid;
 wire[3:0] debouncedKey;
 wire debouncedValid;
 wire blankZero;
-
-
+reg LastValid;
+reg [3:0] Digit0;
+reg [3:0] Digit1;
+reg [3:0] Digit2;
+reg [3:0] Digit3;
+reg [3:0] Digit4;
+reg [3:0] Digit5;
+reg [5:0] DigitOn;
+//wire Reset;
+//assign KEY[3]= Reset;
 //=======================================================
 //  Structural coding
 //=======================================================
 Scan mykeypadScan (CLOCK_50, GPIO[25:11], rawkey, rawValid);
 Debounce(CLOCK_50, rawkey, rawValid, debouncedKey, debouncedValid); 
 SevenSegment( debouncedKey, HEX0, blankZero );
+//always@(posedge CLOCK_50)
+	//begin
+		//LastValid <= debouncedValid;
+	//	if(debouncedValid & LastValid==0) 	// New keystroke
+		//begin
+		
+		//end
+		//if (~Reset)	
+	//	begin	
+		//	DigitOn <= 6'b000000; 
+			
+//	end
 endmodule
 
 // Scan the keypad
