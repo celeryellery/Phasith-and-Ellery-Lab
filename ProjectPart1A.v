@@ -36,32 +36,23 @@ module ProjectPart1A( // top-level module
 //=======================================================
 //  REG/WIRE declarations
 //=======================================================
-reg [31:0] clockCount;
+wire [31:0] clockCount;
+wire [3:0] rawkey;
+wire rawValid;
+wire[3:0] debouncedKey;
+wire debouncedValid;
+wire blankZero;
 
 
 //=======================================================
 //  Structural coding
 //=======================================================
-
-wire[31:0]clk;
-parameter whichClock = 25;
-clock_divider myclockdivider(CLOCK_50, clk);
-assign LEDR[0]=clk[whichClock];
-
+Scan mykeypadScan (CLOCK_50, GPIO[25:11], rawkey, rawValid);
+Debounce(CLOCK_50, rawkey, rawValid, debouncedKey, debouncedValid); 
+SevenSegment( debouncedKey, HEX0, blankZero );
 endmodule
 
-
-// 8/3/15 working
-module clock_divider (clock, divided_clocks);
- input clock;
- output[31:0]divided_clocks;
- reg [31:0] divided_clocks;
- initial 
-  divided_clocks = 0;
- always@(posedge clock)
-  divided_clocks = divided_clocks + 1;
-endmodule
-
+// Scan the keypad
 module Scan(input CLOCK_50, 
             inout[7:0] keypad, 
             output reg[3:0] rawkey, 
@@ -251,5 +242,47 @@ always @(posedge CLOCK_50)
 		end
 			
 	end
+endmodule
+
+// 7 segments
+module SevenSegment( input [3:0] hexDigit,
+		output [6:0] segments, input blankZero );
+		
+	// The actual segments driving lines are active low on the
+	// DE1-SoC.
+			
+	// blankZero = 1 means if the hexDigit = 0, blank out that
+	// digit.  Useful for blanking leading zeros.
+		
+	wire b0, b1, b2, b3;
+	wire [6:0] s;
+	
+	// Break the hex digit into individual bits to make it easier
+	// to write the combinatorial equations.
+	
+	assign b0 = hexDigit[0];
+	assign b1 = hexDigit[1];
+	assign b2 = hexDigit[2];
+	assign b3 = hexDigit[3];
+	
+	// Equations for each of the segments, counting clockwise around
+	// the outside starting from the top, then the middle.
+	
+	assign s[0] = b1 & b2 | ~b1 & ~b2 & b3 | ~b0 & b3 |
+						~b0 & ~b2 | b0 & b2 & ~b3 | b1 & ~b3;
+	assign s[1] = ~b2 & ~b3 | ~b0 & ~b1 & ~b3 | b0 & b1 & ~b3 |
+						~b0 & ~b2 | b0 & ~b1 & b3;
+	assign s[2] = b2 & ~b3 | ~b2 & b3 | b0 & ~b1 | ~b1 & ~b3 | b0 & ~b3;
+	assign s[3] = ~b0 & b1 & b2 | b0 & b1 & ~b2 | ~b1 & b3 |
+						b0 & ~b1 & b2 | ~b0 & ~b2 & ~b3;
+	assign s[4] = ~b0 & b1 | b2 & b3 | b1 & b3 | ~b0 & ~b2;
+	assign s[5] = ~b0 & b2 | ~b2 & b3 | b1 & b3 | ~b0 & ~b1 | ~b1 & b2 & ~b3;
+	assign s[6] = ~b0 & b1 | ~b2 & b3 | b0 & b3 | ~b1 & b2 & ~b3 | b1 & ~b2;
+	
+	// Blank leading zeros and invert the output for active low
+	// on the DE1-SoC board.
+	
+	assign segments = ( blankZero && hexDigit == 4'b0 ) ? ~7'b0 : ~s;
+			
 endmodule
 
