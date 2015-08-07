@@ -107,7 +107,7 @@ module Scan(input CLOCK_50,
 				end
 		else			// If a row is pressed
 			begin
-				case (rows)
+				casex (rows)
 				4'b0xxx:		// Key pressed in row o
 					begin	
 						case(cols)
@@ -209,6 +209,47 @@ module Scan(input CLOCK_50,
 						end
 					endcase
 					end
+					default: rawValid = 0;	// If more than one key pressed or else
 			endcase
 			end
 endmodule
+
+// Debounce each key
+module Debounce(input CLOCK_50,input[3:0] rawkey, input rawValid, output reg[3:0] debouncedKey, output reg debouncedValid);
+reg[31:0] counter;
+reg[3:0] LastrawValid;
+parameter MaxCounter = 10000;
+always @(posedge CLOCK_50)
+	begin
+	if(rawValid)		
+		begin 
+		LastrawValid <= rawValid;
+			if (rawkey==LastrawValid)	// Input is the same as last input
+				begin
+					if (counter ==0)		// Input has been valid 10000 times
+						begin
+						debouncedValid <= 1;
+						debouncedKey <= rawkey;	// Print input to display
+						end
+					else
+						counter <= counter - 1; 	// Input has not been valid for 10000 times yet
+				end
+				
+				
+			else 											// Input is not the same as last
+				begin
+				counter <= MaxCounter;			
+				debouncedValid <= 0;
+				end
+		end
+	else
+		begin
+			if(counter==MaxCounter)		// No key is pressed
+				debouncedValid<=0;
+			else
+			counter <= counter +1;		// rawinput is invalid
+		end
+			
+	end
+endmodule
+
