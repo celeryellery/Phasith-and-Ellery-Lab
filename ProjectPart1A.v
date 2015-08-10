@@ -67,15 +67,29 @@ SevenSegment( Digit5, HEX5, DigitOn[5] );
 
 always@(posedge CLOCK_50)
 	begin
-		LastValid <= debouncedValid;
-		if(debouncedValid & LastValid==0) 	// New keystroke
-		begin
-		
-		end
-		
 		if (~Reset)	                        // Reset key is pressed
 		begin	
-			DigitOn <= 6'b000000; 
+		   Digit0 <= 4'b0000;
+			Digit1 <= 4'b0000;
+			Digit2 <= 4'b0000;
+			Digit3 <= 4'b0000;
+			Digit4 <= 4'b0000;
+			Digit5 <= 4'b0000;
+			DigitOn <= 6'b111111; 
+			LastValid <= 0;
+		end
+		else                                
+		begin
+		LastValid <= debouncedValid;
+			if(debouncedValid & LastValid==0) 	// New keystroke
+			begin
+				Digit0 = debouncedKey;				
+			                                 // Set each digit to the value of the one on its right
+														// Not finished yet...have to assign each bit of DigitOn the same way
+														
+
+		
+			end
 		end
 	end
 endmodule
