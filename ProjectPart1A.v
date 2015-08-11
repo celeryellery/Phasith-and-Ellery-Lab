@@ -115,7 +115,7 @@ module Scan(input CLOCK_50,
 				output reg rawValid);
 	
 	wire[3:0] rows;
-	wire[3:0] cols; 
+	//wire[3:0] cols; 
 	reg[31:0] counter;
 	reg[1:0] colsNum;
 	reg[3:0] decodedcols;
@@ -123,27 +123,27 @@ module Scan(input CLOCK_50,
    parameter clockDivisor = 500;
 	wire Allrows = rows[0]& rows[1]& rows[2]& rows[3];
 
-	assign cols = keypad[3:0];
+	assign keypad[3:0] = decodedcols;
 	assign rows = keypad[7:4];
 
 	always @(posedge CLOCK_50)
-		begin 
+	begin 
 			if (counter==0)
-		begin
-			counter <= clockDivisor;
-			if (Allrows==1)
-			colsNum<=colsNum+1;
-		end
-    else 
-		counter <= counter -1;
+				begin
+				counter <= clockDivisor;
+					if (Allrows==1)  // no key pressed
+					colsNum <= colsNum+1;
+				end
+			else 
+				counter <= counter -1;
     end
 
-	 always@( colsNum)
+	 always@(colsNum)
 		case (colsNum)
-		0: decodedcols = 4'b0111;
-		1: decodedcols = 4'b1011;
-		2: decodedcols = 4'b1101;
-		3: decodedcols = 4'b1110;
+		2'b00: decodedcols = 4'b0111;
+		2'b01: decodedcols = 4'b1011;
+		2'b10: decodedcols = 4'b1101;
+		2'b11: decodedcols = 4'b1110;
 		endcase
 
 	always@(*)
@@ -157,23 +157,23 @@ module Scan(input CLOCK_50,
 				casex (rows)
 				4'b0xxx:		// Key pressed in row o
 					begin	
-						case(cols)
-						4'b0111:					// Pressing key #1
+						case(colsNum)
+						2'b00:					// Pressing key #1
 						begin
 							rawValid <=1;
 							rawkey <= 4'b0001;
 						end
-						4'b1011 :				// Pressing key #2
+						2'b01 :				// Pressing key #2
 						begin
 							rawValid <=1;
 							rawkey <= 4'b0010;
 						end
-						4'b1101:					// Pressing key #3
+						2'b10:					// Pressing key #3
 						begin
 							rawValid <=1;
 							rawkey <= 4'b0011;
 						end
-						4'b1110 :				// Pressing key #A
+						2'b11 :				// Pressing key #A
 						begin
 							rawValid <=1;
 							rawkey <= 4'b1010;
@@ -183,23 +183,23 @@ module Scan(input CLOCK_50,
 					
 					4'b10xx:		// Key pressed in row 1
 					begin	
-						case(cols)
-						4'b0111:					// Pressing key #4
+						case(colsNum)
+						2'b00:					// Pressing key #4
 						begin
 							rawValid <=1;
 							rawkey <= 4'b0100;
 						end
-						4'b1011 :				// Pressing key #5
+						2'b01 :				// Pressing key #5
 						begin
 							rawValid <=1;
 							rawkey <= 4'b0101;
 						end
-						4'b1101:					// Pressing key #6
+						2'b10:					// Pressing key #6
 						begin
 							rawValid <=1;
 							rawkey <= 4'b0110;
 						end
-						4'b1110 :				// Pressing key #B
+						2'b11 :				// Pressing key #B
 						begin
 							rawValid <=1;
 							rawkey <= 4'b1011;
@@ -208,23 +208,23 @@ module Scan(input CLOCK_50,
 				end
 					4'b110x:						// Key pressed in row 2
 					begin	
-						case(cols)
-						4'b0111:					// Pressing key #7
+						case(colsNum)
+						2'b00:					// Pressing key #7
 						begin
 							rawValid <=1;
 							rawkey <= 4'b0111;
 						end
-						4'b1011 :				// Pressing key #8
+						2'b01 :				// Pressing key #8
 						begin
 							rawValid <=1;
 							rawkey <= 4'b1000;
 						end
-						4'b1101:					// Pressing key #9
+						2'b10:					// Pressing key #9
 						begin
 							rawValid <=1;
 							rawkey <= 4'b1001;
 						end
-						4'b1110 :				// Pressing key #C
+						2'b11 :				// Pressing key #C
 						begin
 							rawValid <=1;
 							rawkey <= 4'b1100;
@@ -233,23 +233,23 @@ module Scan(input CLOCK_50,
 					end
 					4'b1110:						// Key pressed in row 3
 					begin	
-						case(cols)
-						4'b0111:					// Pressing key #*( E)
+						case(colsNum)
+						2'b00:					// Pressing key #*( E)
 						begin
 							rawValid <=1;
 							rawkey <= 4'b1110;
 						end
-						4'b1011 :				// Pressing key #0
+						2'b01 :				// Pressing key #0
 						begin
 							rawValid <=1;
 							rawkey <= 4'b0000;
 						end
-						4'b1101:					// Pressing key ##(F)
+						2'b10:					// Pressing key ##(F)
 						begin
 							rawValid <=1;
 							rawkey <= 4'b1111;
 						end
-						4'b1110 :				// Pressing key #D
+						2'b11 :				// Pressing key #D
 						begin
 							rawValid <=1;
 							rawkey <= 4'b1101;
