@@ -50,20 +50,20 @@ reg [3:0] Digit4;
 reg [3:0] Digit5;
 reg [5:0] DigitOn;       // true when digits are not blank
 wire Reset = KEY[3];
-wire[7:0] keypadOutput;
-assign keypadOutput[0] = GPIO[11];
-assign keypadOutput[1] = GPIO[13];
-assign keypadOutput[2] = GPIO[15];
-assign keypadOutput[3] = GPIO[17];
-assign keypadOutput[4] = GPIO[19];
-assign keypadOutput[5] = GPIO[21];
-assign keypadOutput[6] = GPIO[23];
-assign keypadOutput[7] = GPIO[25];
+//wire[7:0] keypadOutput;
+//assign keypadOutput[0] = GPIO[11];
+//assign keypadOutput[1] = GPIO[13];
+//assign keypadOutput[2] = GPIO[15];
+//assign keypadOutput[3] = GPIO[17];
+//assign keypadOutput[4] = GPIO[19];
+//assign keypadOutput[5] = GPIO[21];
+//assign keypadOutput[6] = GPIO[23];
+//assign keypadOutput[7] = GPIO[25];
 //=======================================================
 //  Structural coding
 //=======================================================
 //  Instantiate all modules
-Scan mykeypadScan (CLOCK_50, GPIO[25:11], rawkey, rawValid);
+Scan mykeypadScan (CLOCK_50, {GPIO[11], GPIO[13], GPIO[15], GPIO[17], GPIO[19], GPIO[21], GPIO[23], GPIO[25]}, rawkey, rawValid);
 Debounce(CLOCK_50, rawkey, rawValid, debouncedKey, debouncedValid); 
 
 SevenSegment( Digit0, HEX0, DigitOn[0] );
