@@ -1,5 +1,7 @@
 *
 !*/
 !*.v
+!.vwf
+!.png
 !README.md
 !.gitignore

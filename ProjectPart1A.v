@@ -121,7 +121,7 @@ module Scan(input CLOCK_50,
 	reg[1:0] colsNum;
 	reg[3:0] decodedcols;
 	
-   parameter clockDivisor = 500;
+   parameter clockDivisor =500; // Used 5 for testing
 	wire Allrows = rows[0]& rows[1]& rows[2]& rows[3];
 
 	assign keypad[3:0] = decodedcols;
@@ -266,7 +266,7 @@ endmodule
 module Debounce(input CLOCK_50,input[3:0] rawkey, input rawValid, output reg[3:0] debouncedKey, output reg debouncedValid);
 reg[31:0] counter;
 reg[3:0] LastrawValidKey;
-parameter MaxCounter = 10000;
+parameter MaxCounter = 10000; //Used 5 for testing
 always @(posedge CLOCK_50)
 	begin
 		if (rawValid)		
