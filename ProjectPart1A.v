@@ -63,15 +63,15 @@ wire Reset = KEY[3];
 //  Structural coding
 //=======================================================
 //  Instantiate all modules
-Scan mykeypadScan (CLOCK_50, {GPIO[11], GPIO[13], GPIO[15], GPIO[17], GPIO[19], GPIO[21], GPIO[23], GPIO[25]}, rawkey, rawValid);
-Debounce(CLOCK_50, rawkey, rawValid, debouncedKey, debouncedValid); 
+Scan mykeypadScan (CLOCK_50, {GPIO[25], GPIO[23], GPIO[21], GPIO[19], GPIO[17], GPIO[15], GPIO[13], GPIO[11]}, rawkey, rawValid);
+Debounce mykeyDebouncer (CLOCK_50, rawkey, rawValid, debouncedKey, debouncedValid); 
 
-SevenSegment( Digit0, HEX0, DigitOn[0] );
-SevenSegment( Digit1, HEX1, DigitOn[1] );
-SevenSegment( Digit2, HEX2, DigitOn[2] );
-SevenSegment( Digit3, HEX3, DigitOn[3] );
-SevenSegment( Digit4, HEX4, DigitOn[4] );
-SevenSegment( Digit5, HEX5, DigitOn[5] );
+SevenSegment ss0( Digit0, HEX0, DigitOn[0] );
+SevenSegment ss1( Digit1, HEX1, DigitOn[1] );
+SevenSegment ss2( Digit2, HEX2, DigitOn[2] );
+SevenSegment ss3( Digit3, HEX3, DigitOn[3] );
+SevenSegment ss4( Digit4, HEX4, DigitOn[4] );
+SevenSegment ss5( Digit5, HEX5, DigitOn[5] );
 
 always@(posedge CLOCK_50)
 	begin
@@ -88,21 +88,22 @@ always@(posedge CLOCK_50)
 		end
 		else  		
 		begin
-		LastValid <= debouncedValid;
-			if(debouncedValid & LastValid==0) 	// New keystroke
+			LastValid <= debouncedValid;
+			if (debouncedValid & (LastValid==0)) 	// New keystroke  HEY PHASITH YOU WERE RIGHT!!! SYNTAX WAS WRONG HERE.
 			begin
+				Digit5 <= Digit4;                // Set each digit to the value of the one on its right
+				Digit4 <= Digit3;										
+				Digit3 <= Digit2;										
+				Digit2 <= Digit1;
+				Digit1 <= Digit0;
 				Digit0 <= debouncedKey;				
-			   Digit5 <=Digit4;                // Set each digit to the value of the one on its right
-				Digit4 <=Digit3;										
-				Digit3 <=Digit2;										
-				Digit2 <=Digit1;
-				Digit1 <=Digit0;
-				DigitOn[5]<= DigitOn[4];
-				DigitOn[4]<= DigitOn[3];
-				DigitOn[3]<= DigitOn[2];
-				DigitOn[2]<= DigitOn[1];
-				DigitOn[1]<= DigitOn[0];
-				DigitOn[0]<= 1'b0;
+			   
+				DigitOn[5] <= DigitOn[4];
+				DigitOn[4] <= DigitOn[3];
+				DigitOn[3] <= DigitOn[2];
+				DigitOn[2] <= DigitOn[1];
+				DigitOn[1] <= DigitOn[0];
+				DigitOn[0] <= 1'b0;
 			end
 		end
 	end
@@ -132,7 +133,7 @@ module Scan(input CLOCK_50,
 				begin
 				counter <= clockDivisor;
 					if (Allrows==1)  // no key pressed
-					colsNum <= colsNum+1;
+						colsNum <= colsNum+1;
 				end
 			else 
 				counter <= counter -1;
@@ -148,14 +149,14 @@ module Scan(input CLOCK_50,
 
 	always@(*)
 		if (Allrows )	// If no raw is pressed
-		begin
-			rawkey =0;
-				rawValid = 0;			
-				end
+			begin
+				rawkey <= 0;
+				rawValid <= 0;			
+			end
 		else			// If a row is pressed
 			begin
 				casex (rows)
-				4'b0xxx:		// Key pressed in row o
+				4'b0xxx:		// Key pressed in row 0
 					begin	
 						case(colsNum)
 						2'b00:					// Pressing key #1
@@ -256,7 +257,7 @@ module Scan(input CLOCK_50,
 						end
 					endcase
 					end
-					default: rawValid = 0;	// If more than one key pressed or else
+					default: rawValid <= 0;	// If more than one key pressed or else
 			endcase
 			end
 endmodule
@@ -264,39 +265,38 @@ endmodule
 // Debounce each key
 module Debounce(input CLOCK_50,input[3:0] rawkey, input rawValid, output reg[3:0] debouncedKey, output reg debouncedValid);
 reg[31:0] counter;
-reg[3:0] LastrawValid;
+reg[3:0] LastrawValidKey;
 parameter MaxCounter = 10000;
 always @(posedge CLOCK_50)
 	begin
-	if(rawValid)		
-		begin 
-		LastrawValid <= rawValid;
-			if (rawkey==LastrawValid)	// Input is the same as last input
-				begin
-					if (counter ==0)		// Input has been valid 10000 times
-						begin
-						debouncedValid <= 1;
-						debouncedKey <= rawkey;	// Print input to display
-						end
-					else
-						counter <= counter - 1; 	// Input has not been valid for 10000 times yet
-				end
-				
-				
-			else 											// Input is not the same as last
-				begin
-				counter <= MaxCounter;			
-				debouncedValid <= 0;
-				end
-		end
-	else
-		begin
-			if(counter==MaxCounter)		// No key is pressed
-				debouncedValid<=0;
-			else
-			counter <= counter +1;		// rawinput is invalid
-		end
-			
+		if (rawValid)		
+			begin 
+				LastrawValidKey <= rawkey;
+				if (rawkey == LastrawValidKey)	   // Input is the same as last input
+					begin
+						if (counter == 0)	            // Input has been valid 10000 times
+							begin
+								debouncedValid <= 1;
+								debouncedKey <= rawkey; // Print input to display
+							end
+						else
+							counter <= counter - 1; 	// Input has not been valid for 10000 times yet
+					end
+					
+					
+				else 											// Input is not the same as last
+					begin
+						counter <= MaxCounter;			
+						debouncedValid <= 0;
+					end
+			end
+		else
+			begin
+				if (counter == MaxCounter)		// No key is pressed
+					debouncedValid <= 0;
+				else
+					counter <= counter + 1;		// rawinput is invalid
+			end
 	end
 endmodule
 
