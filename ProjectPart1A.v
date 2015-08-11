@@ -36,7 +36,7 @@ module ProjectPart1A( 			// top-level module
 //=======================================================
 //  REG/WIRE declarations
 //=======================================================
-wire [31:0] clockCount;
+//wire [31:0] clockCount;
 wire [3:0] rawkey;
 wire rawValid;
 wire[3:0] debouncedKey;
@@ -50,7 +50,15 @@ reg [3:0] Digit4;
 reg [3:0] Digit5;
 reg [5:0] DigitOn;       // true when digits are not blank
 wire Reset = KEY[3];
-
+wire[7:0] keypadOutput;
+assign keypadOutput[0] = GPIO[11];
+assign keypadOutput[1] = GPIO[13];
+assign keypadOutput[2] = GPIO[15];
+assign keypadOutput[3] = GPIO[17];
+assign keypadOutput[4] = GPIO[19];
+assign keypadOutput[5] = GPIO[21];
+assign keypadOutput[6] = GPIO[23];
+assign keypadOutput[7] = GPIO[25];
 //=======================================================
 //  Structural coding
 //=======================================================
@@ -78,17 +86,23 @@ always@(posedge CLOCK_50)
 			DigitOn <= 6'b111111; 
 			LastValid <= 0;
 		end
-		else                                
+		else  		
 		begin
 		LastValid <= debouncedValid;
 			if(debouncedValid & LastValid==0) 	// New keystroke
 			begin
-				Digit0 = debouncedKey;				
-			                                 // Set each digit to the value of the one on its right
-														// Not finished yet...have to assign each bit of DigitOn the same way
-														
-
-		
+				Digit0 <= debouncedKey;				
+			   Digit5 <=Digit4;                // Set each digit to the value of the one on its right
+				Digit4 <=Digit3;										
+				Digit3 <=Digit2;										
+				Digit2 <=Digit1;
+				Digit1 <=Digit0;
+				DigitOn[5]<= DigitOn[4];
+				DigitOn[4]<= DigitOn[3];
+				DigitOn[3]<= DigitOn[2];
+				DigitOn[2]<= DigitOn[1];
+				DigitOn[1]<= DigitOn[0];
+				DigitOn[0]<= 1'b0;
 			end
 		end
 	end
