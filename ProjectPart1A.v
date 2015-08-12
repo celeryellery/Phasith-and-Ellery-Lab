@@ -266,7 +266,9 @@ endmodule
 module Debounce(input CLOCK_50,input[3:0] rawkey, input rawValid, output reg[3:0] debouncedKey, output reg debouncedValid);
 reg[31:0] counter;
 reg[3:0] LastrawValidKey;
+parameter offset = 100000;
 parameter MaxCounter = 10000; //Used 5 for testing
+
 always @(posedge CLOCK_50)
 	begin
 		if (rawValid)		
@@ -274,7 +276,7 @@ always @(posedge CLOCK_50)
 				LastrawValidKey <= rawkey;
 				if (rawkey == LastrawValidKey)	   // Input is the same as last input
 					begin
-						if (counter == 0)	            // Input has been valid 10000 times
+						if (counter < (1 + offset))   // Input has been valid 10000 times
 							begin
 								debouncedValid <= 1;
 								debouncedKey <= rawkey; // Print input to display
@@ -286,16 +288,16 @@ always @(posedge CLOCK_50)
 					
 				else 											// Input is not the same as last
 					begin
-						counter <= MaxCounter;			
+						counter <= (MaxCounter + offset);			
 						debouncedValid <= 0;
 					end
 			end
 		else
 			begin
-				if (counter == MaxCounter)		// No key is pressed
+				if ((counter +1 ) > MaxCounter)		// No key is pressed
 					debouncedValid <= 0;
 				else
-					counter <= counter + 1;		// rawinput is invalid
+					counter <= counter + 1;		      // rawinput is invalid
 			end
 	end
 endmodule
